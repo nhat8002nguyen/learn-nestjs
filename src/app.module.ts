@@ -1,31 +1,40 @@
 import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
+import { CoffeeRatingModule } from "./coffee-rating/coffee-rating.module";
 import { CoffeesModule } from "./coffees/coffees.module";
-import { TypeOrmModule } from "@nestjs/typeorm";
-import { ConfigModule } from "@nestjs/config";
-import { AuthModule } from "./auth/auth.module";
-import { UsersModule } from "./users/users.module";
+import { DatabaseModule } from "./database/database.module";
+import Joi from "joi";
+import appConfig from "./config/app.config";
 
 @Module({
   imports: [
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({
+        type: "postgres",
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
+        username: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_DATABASE,
+        autoLoadEntities: true,
+        synchronize: process.env.NODE_ENV !== "production",
+      }),
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env'],
+      envFilePath: [".env"],
+      validationSchema: Joi.object({
+        DB_HOST: Joi.required(),
+        DB_PORT: Joi.number().default(5432),
+      }),
+      load: [appConfig],
     }),
     CoffeesModule,
-    AuthModule,
-    UsersModule,
-    TypeOrmModule.forRoot({
-      type: "postgres",
-      host: process.env.DB_HOST || "localhost",
-      port: parseInt(process.env.DB_PORT || "5432"),
-      username: process.env.DB_USERNAME || "postgres",
-      password: process.env.DB_PASSWORD || "pass123",
-      database: process.env.DB_DATABASE || "postgres",
-      autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== "production",
-    }),
+    CoffeeRatingModule,
+    DatabaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
