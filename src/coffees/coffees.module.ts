@@ -17,7 +17,6 @@ class ProductionConfigService {}
 export class CoffeeBrandsFactory {
   async create() {
     // Do something
-    console.log("waiting for database loading!");
     await new Promise((resolve) => setTimeout(resolve, 0));
     return ["Highlands", "Trung Nguyen"];
   }
