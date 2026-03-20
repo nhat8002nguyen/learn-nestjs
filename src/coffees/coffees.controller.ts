@@ -12,18 +12,18 @@ import { PaginationQueryDto } from "src/common/dtos/pagination-query.dto.ts/pagi
 import { CoffeesService } from "./coffees.service";
 import { CreateCoffeeDto } from "./dtos/create-coffee.dto";
 import { UpdateCoffeeDto } from "./dtos/update-coffee.dto";
-import { Public } from "src/common/decorators/public.decorator";
 import { ParseIntPipe } from "src/common/pipes/parse-int/parse-int.pipe";
 import { Protocol } from "src/common/decorators/protocol.decorator";
+import { Auth, AuthType } from "src/common/decorators/auth.decorator";
 import { ApiForbiddenResponse, ApiTags } from "@nestjs/swagger";
 
 @ApiTags("coffees")
+@Auth(AuthType.Jwt)
 @Controller("coffees")
 export class CoffeesController {
   constructor(private readonly coffeesService: CoffeesService) {}
 
   @ApiForbiddenResponse({ description: "Forbidden." })
-  @Public()
   @Get()
   findAll(
     @Protocol("https") protocol: string,

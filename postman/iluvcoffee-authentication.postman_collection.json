@@ -1,0 +1,130 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-iluvcoffee-auth",
+    "name": "Iluvcoffee — IAM / Authentication",
+    "description": "NestJS authentication routes under `/api/authentication`.\n\nResponses are wrapped as `{ \"data\": ... }` by `WrapResponseInterceptor` (except `sign-out`, which returns **204 No Content**).\n\n**Variables:** `baseUrl` defaults to `http://localhost:3000/api`. After **Sign in** or **Refresh tokens**, scripts store `accessToken` and `refreshToken` on the collection for reuse.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Sign up",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"your-secure-password\"\n}"
+        },
+        "url": "{{baseUrl}}/authentication/sign-up",
+        "description": "`CreateUserDto`: `email` (valid email), `password` (string).\n\nReturns created user wrapped in `data` (includes `id`, `email`, and hashed `password` as stored)."
+      },
+      "response": []
+    },
+    {
+      "name": "Sign in",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.data && json.data.accessToken) {",
+              "  pm.collectionVariables.set(\"accessToken\", json.data.accessToken);",
+              "  pm.collectionVariables.set(\"refreshToken\", json.data.refreshToken);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"your-secure-password\"\n}"
+        },
+        "url": "{{baseUrl}}/authentication/sign-in",
+        "description": "`SignInDto`: `email`, `password`.\n\nSuccess: `data.user`, `data.accessToken`, `data.refreshToken`. Test script saves tokens to collection variables."
+      },
+      "response": []
+    },
+    {
+      "name": "Refresh tokens",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json && json.data && json.data.accessToken) {",
+              "  pm.collectionVariables.set(\"accessToken\", json.data.accessToken);",
+              "  pm.collectionVariables.set(\"refreshToken\", json.data.refreshToken);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": "{{baseUrl}}/authentication/refresh-tokens",
+        "description": "`RefreshTokensDto`: `refreshToken` (string).\n\nSuccess: same shape as sign-in. Old refresh token is consumed; test script updates stored tokens."
+      },
+      "response": []
+    },
+    {
+      "name": "Sign out",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": "{{baseUrl}}/authentication/sign-out",
+        "description": "`SignOutDto`: optional `refreshToken`. Empty body `{}` is valid (no-op).\n\nReturns **204 No Content** with no body."
+      },
+      "response": []
+    }
+  ]
+}

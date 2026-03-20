@@ -7,6 +7,18 @@ services:
     environment:
       POSTGRES_PASSWORD: pass123
 
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   test-db:
     image: "postgres"
     restart: always

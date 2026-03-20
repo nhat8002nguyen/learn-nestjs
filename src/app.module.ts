@@ -9,6 +9,8 @@ import { CoffeesModule } from "./coffees/coffees.module";
 import { CommonModule } from "./common/common.module";
 import appConfig from "./config/app.config";
 import { DatabaseModule } from "./database/database.module";
+import { IamModule } from "./iam/iam.module";
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { DatabaseModule } from "./database/database.module";
       validationSchema: Joi.object({
         DB_HOST: Joi.required(),
         DB_PORT: Joi.number().default(5432),
+        REDIS_HOST: Joi.string().default("localhost"),
+        REDIS_PORT: Joi.number().default(6379),
       }),
       load: [appConfig],
     }),
@@ -37,6 +41,8 @@ import { DatabaseModule } from "./database/database.module";
     CoffeeRatingModule,
     DatabaseModule,
     CommonModule,
+    IamModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
