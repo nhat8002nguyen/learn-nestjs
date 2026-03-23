@@ -31,7 +31,12 @@ export class AuthenticationService {
     const refreshTokenId = randomUUID();
     await this.refreshTokenStorage.save(refreshTokenId, user.id);
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAccessToken({ sub: user.id, email: user.email }),
+      this.jwtService.signAccessToken({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        tokenType: "access" as const,
+      }),
       this.jwtService.signRefreshToken({
         sub: user.id,
         tokenType: "refresh",
@@ -68,7 +73,12 @@ export class AuthenticationService {
     const newRefreshTokenId = randomUUID();
     await this.refreshTokenStorage.save(newRefreshTokenId, user.id);
     const [accessToken, newRefreshToken] = await Promise.all([
-      this.jwtService.signAccessToken({ sub: user.id, email: user.email }),
+      this.jwtService.signAccessToken({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+        tokenType: "access" as const,
+      }),
       this.jwtService.signRefreshToken({
         sub: user.id,
         tokenType: "refresh",

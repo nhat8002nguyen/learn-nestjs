@@ -2,8 +2,11 @@ import { Inject, Injectable } from "@nestjs/common";
 import { JwtService as NestJwtService } from "@nestjs/jwt";
 import type { ConfigType } from "@nestjs/config";
 import jwtConfig from "../config/jwt.config";
+import { ActiveUserData } from "../dto/active-user-data/active-user-data.dto";
 
-export type AccessTokenPayload = { sub: number; email: string };
+export type AccessTokenPayload = ActiveUserData & {
+  tokenType: "access";
+};
 
 export type RefreshTokenPayload = {
   sub: number;

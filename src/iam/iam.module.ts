@@ -13,6 +13,7 @@ import { JwtService } from "./authentication/jwt/jwt.service";
 import { RefreshTokenStorage } from "./authentication/refresh-token-storage/refresh-token-storage.service";
 import { BcryptService } from "./hashing/bcrypt/bcrypt.service";
 import { HashingService } from "./hashing/hashing.service";
+import { RolesGuard } from "./authorization/guards/roles/roles.guard";
 
 @Module({
   imports: [
@@ -32,6 +33,10 @@ import { HashingService } from "./hashing/hashing.service";
     {
       provide: APP_GUARD,
       useClass: AccessTokenGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
     BcryptService,
     {
