@@ -8,5 +8,5 @@ export const Public = () =>
   applyDecorators(
     SetMetadata(IS_API_PUBLIC, true),
     // Keep API key bypass and JWT bypass aligned for routes marked as "public".
-    SetMetadata(AUTH_TYPE, AuthType.None),
+    SetMetadata(AUTH_TYPE, [AuthType.None]),
   );

@@ -18,13 +18,18 @@ export class AccessTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const authType =
-      this.reflector.getAllAndOverride<AuthType>(AUTH_TYPE, [
-        context.getHandler(),
-        context.getClass(),
-      ]) ?? AuthType.Jwt;
+    const raw = this.reflector.getAllAndOverride<AuthType | AuthType[]>(
+      AUTH_TYPE,
+      [context.getHandler(), context.getClass()],
+    );
+    const authTypes: AuthType[] =
+      raw === undefined || raw === null
+        ? [AuthType.Jwt]
+        : Array.isArray(raw)
+          ? raw
+          : [raw];
 
-    if (authType === AuthType.None) {
+    if (authTypes.length === 1 && authTypes[0] === AuthType.None) {
       return true;
     }
 

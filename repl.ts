@@ -3,10 +3,15 @@ import * as bcrypt from "bcrypt";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { UsersService } from "./src/users/users.service";
 import { UsersModule } from "./src/users/users.module";
 import type { UpdateUserDto } from "./src/users/dto/update-user.dto";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { IamModule } from "./src/iam/iam.module";
+import { ApiKeyService } from "./src/iam/authentication/api-key/api-key.service";
+import { ApiKey } from "./src/users/entities/api-key.entity";
 
 type UserUpdatePatch = Pick<UpdateUserDto, "email" | "password">;
 
@@ -48,6 +53,7 @@ async function hashPassword(plain: string): Promise<string> {
       },
     }),
     UsersModule,
+    IamModule,
   ],
 })
 class ReplModule {}
@@ -65,6 +71,10 @@ async function start() {
   requireEnv("DB_DATABASE");
 
   const usersService = app.get(UsersService);
+  const apiKeyService = app.get(ApiKeyService);
+  const apiKeyRepository = app.get<Repository<ApiKey>>(
+    getRepositoryToken(ApiKey),
+  );
 
   const replServer = repl.start({
     prompt: "iluvcoffee> ",
@@ -77,7 +87,24 @@ async function start() {
   };
 
   replServer.context.usersService = usersService;
+  replServer.context.apiKeyService = apiKeyService;
+  replServer.context.apiKeyRepository = apiKeyRepository;
   replServer.context.hashPassword = (plain: string) => hashPassword(plain);
+
+  replServer.context.createApiKey = async (userId: number, id: string) => {
+    const { apiKey, hashedKey } = await apiKeyService.createAndHash(id);
+    const entity = apiKeyRepository.create({
+      key: hashedKey,
+      uuid: id,
+      userId,
+    });
+    const saved = await apiKeyRepository.save(entity);
+    return { apiKey, saved };
+  };
+
+  replServer.context.listApiKeys = () => apiKeyRepository.find();
+  replServer.context.listApiKeysByUserId = (userId: number) =>
+    apiKeyRepository.find({ where: { userId } });
 
   replServer.context.listUsers = () => usersService.findAll();
   replServer.context.getUser = (id: number) => usersService.findOne(id);

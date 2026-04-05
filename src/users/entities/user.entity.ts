@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Role } from "../enums/role.enum";
+import { ApiKey } from "./api-key.entity";
 
 @Entity()
 export class User {
@@ -14,4 +15,7 @@ export class User {
 
   @Column({ type: "enum", enum: Role, default: Role.Regular })
   role: Role;
+
+  @OneToMany(() => ApiKey, (apiKey) => apiKey.user, { cascade: true })
+  apiKeys: ApiKey[];
 }

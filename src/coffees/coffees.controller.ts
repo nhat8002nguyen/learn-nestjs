@@ -20,7 +20,7 @@ import { Roles } from "src/iam/authorization/decorators/role.decorator";
 import { Role } from "src/users/enums/role.enum";
 
 @ApiTags("coffees")
-@Auth(AuthType.Jwt)
+@Auth(AuthType.Jwt, AuthType.ApiKey)
 @Controller("coffees")
 export class CoffeesController {
   constructor(private readonly coffeesService: CoffeesService) {}
