@@ -15,6 +15,18 @@ import { ApiKey } from "./src/users/entities/api-key.entity";
 
 type UserUpdatePatch = Pick<UpdateUserDto, "email" | "password">;
 
+type SpamCoffeesFindAllOptions = {
+  /** Base URL without trailing slash, e.g. http://127.0.0.1:3000. Defaults to API_BASE_URL env or http://127.0.0.1:3000 */
+  baseUrl?: string;
+  /** Number of GET /api/coffees calls. Default 50. */
+  count?: number;
+};
+
+type SpamCoffeesFindAllResult = {
+  results: Array<{ index: number; status: number; bodyPreview: string }>;
+  statusCounts: Record<number, number>;
+};
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -161,6 +173,41 @@ async function start() {
   replServer.context.deleteUser = async (id: number) => {
     await usersService.remove(id);
     return true;
+  };
+
+  /**
+   * Fire sequential HTTP GETs to `CoffeesController.findAll` to exercise the circuit breaker.
+   * Requires the HTTP app running (e.g. `npm run start:dev`) and a valid API key header.
+   *
+   * Example:
+   *   const { apiKey } = await createApiKey(1, "repl-test-key");
+   *   await spamCoffeesFindAll(apiKey);
+   */
+  replServer.context.spamCoffeesFindAll = async (
+    apiKey: string,
+    options?: SpamCoffeesFindAllOptions,
+  ): Promise<SpamCoffeesFindAllResult> => {
+    const baseUrl =
+      options?.baseUrl ?? process.env.API_BASE_URL ?? "http://127.0.0.1:3000";
+    const count = options?.count ?? 50;
+    const url = `${baseUrl.replace(/\/$/, "")}/api/coffees`;
+    const results: SpamCoffeesFindAllResult["results"] = [];
+    const statusCounts: Record<number, number> = {};
+
+    for (let index = 1; index <= count; index += 1) {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          api_key: apiKey,
+        },
+      });
+      const text = await res.text();
+      const bodyPreview = text.length > 240 ? `${text.slice(0, 240)}…` : text;
+      results.push({ index, status: res.status, bodyPreview });
+      statusCounts[res.status] = (statusCounts[res.status] ?? 0) + 1;
+    }
+
+    return { results, statusCounts };
   };
 
   replServer.on("exit", () => {
