@@ -11,6 +11,7 @@ import appConfig from "./config/app.config";
 import { DatabaseModule } from "./database/database.module";
 import { IamModule } from "./iam/iam.module";
 import { UsersModule } from "./users/users.module";
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { UsersModule } from "./users/users.module";
     CommonModule,
     IamModule,
     UsersModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],

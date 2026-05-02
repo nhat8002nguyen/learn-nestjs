@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  UseInterceptors,
 } from "@nestjs/common";
 import { ApiForbiddenResponse, ApiTags } from "@nestjs/swagger";
 import { Auth, AuthType } from "src/common/decorators/auth.decorator";
@@ -18,6 +19,7 @@ import { CreateCoffeeDto } from "./dtos/create-coffee.dto";
 import { UpdateCoffeeDto } from "./dtos/update-coffee.dto";
 import { Roles } from "src/iam/authorization/decorators/role.decorator";
 import { Role } from "src/users/enums/role.enum";
+import { CircuitBreakerInterceptor } from "src/common/interceptors/circuit-breaker/circuit-breaker.interceptor";
 
 @ApiTags("coffees")
 @Auth(AuthType.Jwt, AuthType.ApiKey)
@@ -25,6 +27,7 @@ import { Role } from "src/users/enums/role.enum";
 export class CoffeesController {
   constructor(private readonly coffeesService: CoffeesService) {}
 
+  @UseInterceptors(CircuitBreakerInterceptor)
   @ApiForbiddenResponse({ description: "Forbidden." })
   @Get()
   findAll(
